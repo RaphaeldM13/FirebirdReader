@@ -5,5 +5,5 @@ After=network.target
 
 [Service]
 Type=oneshot
-WorkingDirectory=/opt/firebird-reader
-ExecStart=/usr/bin/python3 /opt/firebird-reader/FirebirdReader.py
+WorkingDirectory=/opt/FirebirdReader
+ExecStart=/usr/bin/python3 /opt/FirebirdReader/FirebirdReader/FirebirdReader.py
