@@ -14,7 +14,7 @@ conn = fdb.connect(
     host='localhost',
     user='SYSDBA',
     password='admin',
-    database=r'C:\Program Files\Firebird\Firebird_5_0\examples\empbuild\EMPLOYEE.FDB'
+    database='/opt/FirebirdReader/employee.fdb'
 )
 cursor = conn.cursor()
 cursor.execute("SELECT * FROM EMPLOYEE")
@@ -33,11 +33,7 @@ def FDBRead():
 def DataLogging(line):
     # Transformation en log
     log = line
-    #[0]
-    #line.pop(0)
-    #for col in line:
-    #    log += " - " + col
-    #logger.info(log)
+    logger.info(log)
 
 FDBFirstread()
 while True :
