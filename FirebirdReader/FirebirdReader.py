@@ -33,11 +33,11 @@ def FDBRead():
 def DataLogging(line):
     # Transformation en log
     log = line
-    [0]
-    line.pop(0)
-    for col in line:
-        log += " - " + col
-    logger.info(log)
+    #[0]
+    #line.pop(0)
+    #for col in line:
+    #    log += " - " + col
+    #logger.info(log)
 
 FDBFirstread()
 while True :
