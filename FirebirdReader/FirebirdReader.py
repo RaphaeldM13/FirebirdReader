@@ -17,6 +17,7 @@ conn = connect(
     user='SYSDBA',
     password='admin'
 )
+conn.isolation_level = 'READ_COMMITTED'
 cursor = conn.cursor()
 cursor.execute("SELECT * FROM EMPLOYEE")
 
@@ -27,9 +28,11 @@ def FDBFirstread():
     for row in cursor.fetchall():
         DataLogging(row)
         last_emp_no = row[0]
+    return last_emp_no
 
 def FDBRead(last_emp_no):
     # lecture des nouvelles données de la DB
+    conn.commit()
     cursor.execute(
         "SELECT * FROM EMPLOYEE WHERE EMP_NO > ? ORDER BY EMP_NO",
         (last_emp_no,)
