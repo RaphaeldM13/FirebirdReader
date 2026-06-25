@@ -1,21 +1,23 @@
 import logging
 from logging.handlers import SysLogHandler
 import sys
-import fdb
+from firebird.driver import connect, driver_config
 
 logger = logging.getLogger('firebird_reader')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
-syslog_handler = SysLogHandler(address='/dev/log')
-syslog_handler.ident = 'firebird_reader: '
-logger.addHandler(syslog_handler)
+# syslog_handler = SysLogHandler(address='/dev/log')
+# syslog_handler.ident = 'firebird_reader: '
+# logger.addHandler(syslog_handler)
 
-conn = fdb.connect(
-    host='localhost',
+driver_config.server_defaults.host.value = 'localhost'
+
+conn = connect(
+    "C:\Program Files\Firebird\Firebird_5_0\examples\empbuild\EMPLOYEE.FDB",
     user='SYSDBA',
-    password='admin',
-    database='/opt/FirebirdReader/employee.fdb'
+    password='admin'
 )
+
 cursor = conn.cursor()
 cursor.execute("SELECT * FROM EMPLOYEE")
 
