@@ -4,7 +4,15 @@ Description=Firebird DB reader (phase debug)
 After=network.target
 
 [Service]
-Environment="FIREBIRD_DB_PATH=localhost:/var/lib/firebird/data/EMPLOYEE.FDB"
+Type=simple
+User=firebird
+WorkingDirectory=/opt/FirebirdReader
+Environment="FIREBIRD_DB_PATH=localhost:/opt/FirebirdReader/employee.fdb"
 Environment="FIREBIRD_USER=SYSDBA"
 Environment="FIREBIRD_PASSWORD=admin"
 ExecStart=/opt/FirebirdReader/venv/bin/python /opt/FirebirdReader/FirebirdReader/FirebirdReader.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
