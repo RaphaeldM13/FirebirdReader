@@ -98,7 +98,6 @@ last_ids = {}
 
 tables = get_all_tables()
 for table_name in tables:
-    logger.info(f"[INIT] Lecture initiale de la table: {table_name}")
     last_ids[table_name] = FDBFirstread(table_name)
 
 while True:
