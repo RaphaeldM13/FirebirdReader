@@ -1,17 +1,35 @@
 import logging
-from logging.handlers import SysLogHandler
+from logging.handlers import SysLogHandler, NTEventLogHandler
 import sys
 import time
+import os
+import platform
 from firebird.driver import connect, driver_config
 
-driver_config.server_defaults.host.value = 'localhost'
-
 logger = logging.getLogger('firebird_reader')
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
-# syslog_handler = SysLogHandler(address='/dev/log')
-# syslog_handler.ident = 'firebird_reader: '
-# logger.addHandler(syslog_handler)
+system = platform.system()
+
+if system == "Linux":
+    try:
+        syslog_handler = SysLogHandler(address='/dev/log')
+        syslog_handler.ident = 'firebird_reader: '
+        formatter = logging.Formatter('%(message)s')
+        syslog_handler.setFormatter(formatter)
+        logger.addHandler(syslog_handler)
+        logger.setLevel(logging.INFO)
+    except Exception as e:
+        print(f"Erreur syslog: {e}")
+        
+elif system == "Windows":
+    handler = NTEventLogHandler('FirebirdReader')
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+
+else:
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 conn = connect(
     "localhost:C:/Program Files/Firebird/Firebird_5_0/examples/empbuild/EMPLOYEE.FDB",
@@ -55,3 +73,4 @@ def DataLogging(line):
 last_emp_no = FDBFirstread()
 while True :
     last_emp_no = FDBRead(last_emp_no)
+    time.sleep(30)
