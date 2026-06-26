@@ -29,6 +29,7 @@ elif system == "Windows":
     logger.setLevel(logging.INFO)
 
 else:
+    logger.setLevel(logging.INFO)
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 conn = connect(
@@ -38,39 +39,67 @@ conn = connect(
 )
 cursor = conn.cursor()
 
+def get_all_tables():
+    cursor.execute(
+        "SELECT RDB$RELATION_NAME FROM RDB$RELATIONS WHERE RDB$SYSTEM_FLAG = 0 AND RDB$VIEW_BLR IS NULL ORDER BY RDB$RELATION_NAME"
+    )
+    return [row[0].strip() for row in cursor.fetchall()]
 
-def FDBFirstread():
+def get_first_column(table_name):
+    cursor.execute("""
+        SELECT FIRST 1 RF.RDB$FIELD_NAME
+        FROM RDB$RELATION_FIELDS RF
+        WHERE RF.RDB$RELATION_NAME = ?
+        ORDER BY RF.RDB$FIELD_POSITION
+    """, (table_name,))
+    result = cursor.fetchone()
+    if result:
+        return result[0].strip()
+    return None
+
+def FDBFirstread(table_name):
     # 1e lecture de la DB pour récup le contenu déjà présent
-    last_emp_no = 0
-    cursor.execute("SELECT * FROM EMPLOYEE ORDER BY EMP_NO")
+    last_id = 0
+    cursor.execute(f"SELECT * FROM {table_name} ORDER BY 1")
     for row in cursor.fetchall():
-        DataLogging(row)
-        last_emp_no = row[0]
-    return last_emp_no
+        DataLogging(table_name, row)
+        last_id = row[0]
+    return last_id
 
-def FDBRead(last_emp_no):
-    # lecture des nouvelles données de la DB
+def FDBRead(table_name, last_id):
+     #Lecture des nouvelles données d'une table
     conn.commit()
-    try :
+    first_column = get_first_column(table_name)  # ← Assignez d'abord
+    try:
         cursor.execute(
-            "SELECT * FROM EMPLOYEE WHERE EMP_NO > ? ORDER BY EMP_NO",
-            (last_emp_no,)
+            f"SELECT * FROM {table_name} WHERE {first_column} > ? ORDER BY 1",
+            (last_id,)
         )
-    except :
-        print("query error")
+    except Exception as e:
+        logger.error(f"Erreur requête {table_name}: {e}")
+        return last_id
+    
     rows = cursor.fetchall()
     for row in rows:
-        DataLogging(row)
+        DataLogging(table_name, row)
+    
     if rows:
-        last_emp_no = rows[-1][0]
-    return last_emp_no
+        last_id = rows[-1][0]
+    return last_id
 
-def DataLogging(line):
+def DataLogging(table_name, line):
     # Transformation en log
-    log = line
+    log = f"[{table_name}] {line}"
     logger.info(log)
 
-last_emp_no = FDBFirstread()
-while True :
-    last_emp_no = FDBRead(last_emp_no)
+last_ids = {}
+
+tables = get_all_tables()
+for table_name in tables:
+    logger.info(f"[INIT] Lecture initiale de la table: {table_name}")
+    last_ids[table_name] = FDBFirstread(table_name)
+
+while True:
+    for table_name in tables:
+        last_ids[table_name] = FDBRead(table_name, last_ids[table_name])
     time.sleep(30)
