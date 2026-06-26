@@ -32,10 +32,12 @@ else:
     logger.setLevel(logging.INFO)
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
+db_path = os.getenv('FIREBIRD_DB_PATH', 'localhost:EMPLOYEE.FDB')
+
 conn = connect(
-    "localhost:C:/Program Files/Firebird/Firebird_5_0/examples/empbuild/EMPLOYEE.FDB",
-    user='SYSDBA',
-    password='admin'
+    db_path,
+    user=os.getenv('FIREBIRD_USER', 'SYSDBA'),
+    password=os.getenv('FIREBIRD_PASSWORD', 'admin')
 )
 cursor = conn.cursor()
 
