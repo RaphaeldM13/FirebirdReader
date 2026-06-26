@@ -1,6 +1,7 @@
 import logging
 from logging.handlers import SysLogHandler
 import sys
+import time
 from firebird.driver import connect, driver_config
 
 driver_config.server_defaults.host.value = 'localhost'
@@ -17,14 +18,13 @@ conn = connect(
     user='SYSDBA',
     password='admin'
 )
-conn.isolation_level = 'READ_COMMITTED'
 cursor = conn.cursor()
-cursor.execute("SELECT * FROM EMPLOYEE")
 
 
 def FDBFirstread():
-    last_emp_no = 0
     # 1e lecture de la DB pour récup le contenu déjà présent
+    last_emp_no = 0
+    cursor.execute("SELECT * FROM EMPLOYEE ORDER BY EMP_NO")
     for row in cursor.fetchall():
         DataLogging(row)
         last_emp_no = row[0]
@@ -33,10 +33,13 @@ def FDBFirstread():
 def FDBRead(last_emp_no):
     # lecture des nouvelles données de la DB
     conn.commit()
-    cursor.execute(
-        "SELECT * FROM EMPLOYEE WHERE EMP_NO > ? ORDER BY EMP_NO",
-        (last_emp_no,)
-    )
+    try :
+        cursor.execute(
+            "SELECT * FROM EMPLOYEE WHERE EMP_NO > ? ORDER BY EMP_NO",
+            (last_emp_no,)
+        )
+    except :
+        print("query error")
     rows = cursor.fetchall()
     for row in rows:
         DataLogging(row)
